@@ -1,6 +1,3 @@
-//go:build freebsd || linux || darwin
-// +build freebsd linux darwin
-
 /*
    Copyright The containerd Authors.
 
@@ -20,29 +17,13 @@
 package main
 
 import (
-	"os"
-	"syscall"
-
-	"github.com/pkg/errors"
-	"golang.org/x/term"
+	"github.com/spf13/cobra"
 )
 
-func readPassword() (string, error) {
-	var fd int
-	if term.IsTerminal(syscall.Stdin) {
-		fd = syscall.Stdin
-	} else {
-		tty, err := os.Open("/dev/tty")
-		if err != nil {
-			return "", errors.Wrap(err, "error allocating terminal")
-		}
-		defer tty.Close()
-		fd = int(tty.Fd())
-	}
-	bytePassword, err := term.ReadPassword(fd)
-	if err != nil {
-		return "", errors.Wrap(err, "error reading password")
-	}
+func appNeedsRootlessParentMain(cmd *cobra.Command, args []string) bool {
+	return false
+}
 
-	return string(bytePassword), nil
+func shellCompleteCgroupManagerNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return nil, cobra.ShellCompDirectiveNoFileComp
 }

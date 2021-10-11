@@ -1,6 +1,3 @@
-//go:build freebsd || linux || darwin
-// +build freebsd linux darwin
-
 /*
    Copyright The containerd Authors.
 
@@ -17,32 +14,16 @@
    limitations under the License.
 */
 
-package main
+package containerinspector
 
 import (
-	"os"
-	"syscall"
+	"context"
 
-	"github.com/pkg/errors"
-	"golang.org/x/term"
+	"github.com/containerd/nerdctl/pkg/inspecttypes/native"
 )
 
-func readPassword() (string, error) {
-	var fd int
-	if term.IsTerminal(syscall.Stdin) {
-		fd = syscall.Stdin
-	} else {
-		tty, err := os.Open("/dev/tty")
-		if err != nil {
-			return "", errors.Wrap(err, "error allocating terminal")
-		}
-		defer tty.Close()
-		fd = int(tty.Fd())
-	}
-	bytePassword, err := term.ReadPassword(fd)
-	if err != nil {
-		return "", errors.Wrap(err, "error reading password")
-	}
+func inspectNetNS(ctx context.Context, pid int) (*native.NetNS, error) {
+	r := &native.NetNS{}
 
-	return string(bytePassword), nil
+	return r, nil
 }

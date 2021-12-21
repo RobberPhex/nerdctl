@@ -71,7 +71,7 @@ func GenerateConfigList(e *CNIEnv, labels []string, id int, name, cidr string) (
 	for _, f := range basicPlugins {
 		p := filepath.Join(e.Path, f)
 		if _, err := exec.LookPath(p); err != nil {
-			return nil, fmt.Errorf("needs CNI plugin %q to be installed in CNI_PATH (%q), see https://github.com/containernetworking/plugins/releases: %w", f, e.Path, err)
+			fmt.Printf("needs CNI plugin %q to be installed in CNI_PATH (%q), see https://github.com/containernetworking/plugins/releases: %w\n\n", f, e.Path, err)
 		}
 	}
 	var extraPlugins string

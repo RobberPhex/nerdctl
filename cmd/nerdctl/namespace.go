@@ -79,7 +79,8 @@ func namespaceLsAction(cmd *cobra.Command, args []string) error {
 
 	dataStore, err := getDataStore(cmd)
 	if err != nil {
-		return err
+		logrus.Warnf("getDataStore failed! %s", err)
+		dataStore = ""
 	}
 
 	w := tabwriter.NewWriter(cmd.OutOrStdout(), 4, 8, 4, ' ', 0)
@@ -87,7 +88,8 @@ func namespaceLsAction(cmd *cobra.Command, args []string) error {
 	fmt.Fprintln(w, "NAME\tCONTAINERS\tIMAGES\tVOLUMES")
 	for _, ns := range nsList {
 		ctx = namespaces.WithNamespace(ctx, ns)
-		var numContainers, numImages, numVolumes int
+		var numContainers, numImages int
+		var numVolumes string
 
 		containers, err := client.Containers(ctx)
 		if err != nil {
@@ -101,20 +103,24 @@ func namespaceLsAction(cmd *cobra.Command, args []string) error {
 		}
 		numImages = len(images)
 
-		volStore, err := volumestore.Path(dataStore, ns)
-		if err != nil {
-			logrus.Warn(err)
-		} else {
-			volEnts, err := os.ReadDir(volStore)
+		if dataStore != "" {
+			volStore, err := volumestore.Path(dataStore, ns)
 			if err != nil {
-				if !os.IsNotExist(err) {
-					logrus.Warn(err)
+				logrus.Warn(err)
+			} else {
+				volEnts, err := os.ReadDir(volStore)
+				if err != nil {
+					if !os.IsNotExist(err) {
+						logrus.Warn(err)
+					}
 				}
+				numVolumes = fmt.Sprintf("%d", len(volEnts))
 			}
-			numVolumes = len(volEnts)
+		} else {
+			numVolumes = "<unknown>"
 		}
 
-		fmt.Fprintf(w, "%s\t%d\t%d\t%d\n", ns, numContainers, numImages, numVolumes)
+		fmt.Fprintf(w, "%s\t%d\t%d\t%s\n", ns, numContainers, numImages, numVolumes)
 	}
 	return w.Flush()
 }

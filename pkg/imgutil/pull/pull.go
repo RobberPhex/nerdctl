@@ -19,6 +19,7 @@ package pull
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/containerd/containerd"
@@ -93,6 +94,7 @@ func Pull(ctx context.Context, client *containerd.Client, ref string, config *Co
 	}
 	stopProgress()
 	if err != nil {
+		fmt.Printf("err: %+v\n", err)
 		return nil, err
 	}
 

@@ -171,8 +171,8 @@ require (
 )
 
 replace (
-	github.com/containerd/containerd => github.com/robberphex/containerd v1.5.1-0.20211221141034-7a89bbe7ef96 // for-remote-version-cmd
-	github.com/containerd/containerd/api => github.com/robberphex/containerd/api v0.0.0-20211221141034-7a89bbe7ef96 // for-remote-version-cmd
+	github.com/containerd/containerd => github.com/robberphex/containerd v1.5.1-0.20211221174513-b06f4e140259 // release/for-remote
+	github.com/containerd/containerd/api => github.com/robberphex/containerd/api v0.0.0-20211221174513-b06f4e140259 // release/for-remote
 
 	// Temporary fork for avoiding importing patent-protected code: https://github.com/hashicorp/golang-lru/issues/73
 	github.com/hashicorp/golang-lru => github.com/ktock/golang-lru v0.5.5-0.20211029085301-ec551be6f75c

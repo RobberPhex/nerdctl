@@ -76,6 +76,14 @@ func versionAction(cmd *cobra.Command, args []string) error {
 		if v.Server != nil {
 			fmt.Fprintf(w, "\n")
 			fmt.Fprintf(w, "Server:\n")
+			platformStr := ""
+			for i, p := range v.Server.Platforms {
+				if i != 0 {
+					platformStr += ", "
+				}
+				platformStr += p.OS + "/" + p.Architecture
+			}
+			fmt.Fprintf(w, " Platform: %s\n", platformStr)
 			for _, compo := range v.Server.Components {
 				fmt.Fprintf(w, " %s:\n", compo.Name)
 				fmt.Fprintf(w, "  Version:\t%s\n", compo.Version)

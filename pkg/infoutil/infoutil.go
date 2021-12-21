@@ -98,6 +98,14 @@ func ServerVersion(ctx context.Context, client *containerd.Client) (*dockercompa
 		return nil, err
 	}
 
+	var platforms []dockercompat.Platform
+	for _, p := range daemonVersion.Platforms {
+		platforms = append(platforms, dockercompat.Platform{
+			OS:           p.OS,
+			Architecture: p.Architecture,
+		})
+	}
+
 	v := &dockercompat.ServerVersion{
 		Components: []dockercompat.ComponentVersion{
 			{
@@ -106,6 +114,7 @@ func ServerVersion(ctx context.Context, client *containerd.Client) (*dockercompa
 				Details: map[string]string{"GitCommit": daemonVersion.Revision},
 			},
 		},
+		Platforms: platforms,
 		// TODO: add runc version
 	}
 	return v, nil

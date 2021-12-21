@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/containerd/nerdctl/pkg/infoutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -86,6 +87,15 @@ func pullAction(cmd *cobra.Command, args []string) error {
 	platform, err := cmd.Flags().GetStringSlice("platform")
 	if err != nil {
 		return err
+	}
+	if len(platform) == 0 {
+		sv, err := infoutil.ServerVersion(ctx, client)
+		if err != nil {
+			return err
+		}
+		for _, p := range sv.Platforms {
+			platform = append(platform, p.OS+"/"+p.Architecture)
+		}
 	}
 	ocispecPlatforms, err := platformutil.NewOCISpecPlatformSlice(allPlatforms, platform)
 	if err != nil {

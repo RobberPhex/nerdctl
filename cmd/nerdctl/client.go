@@ -42,15 +42,17 @@ func newClient(cmd *cobra.Command, opts ...containerd.ClientOpt) (*containerd.Cl
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	address = strings.TrimPrefix(address, "unix://")
-	const dockerContainerdaddress = "/var/run/docker/containerd/containerd.sock"
-	if err := isSocketAccessible(address); err != nil {
-		if isSocketAccessible(dockerContainerdaddress) == nil {
-			err = fmt.Errorf("cannot access containerd socket %q (hint: try running with `--address %s` to connect to Docker-managed containerd): %w", address, dockerContainerdaddress, err)
-		} else {
-			err = fmt.Errorf("cannot access containerd socket %q: %w", address, err)
+	if strings.HasPrefix(address, "unix://") {
+		path := strings.TrimPrefix(address, "unix://")
+		const dockerContainerdaddress = "/var/run/docker/containerd/containerd.sock"
+		if err := isSocketAccessible(path); err != nil {
+			if isSocketAccessible(dockerContainerdaddress) == nil {
+				err = fmt.Errorf("cannot access containerd socket %q (hint: try running with `--address %s` to connect to Docker-managed containerd): %w", address, dockerContainerdaddress, err)
+			} else {
+				err = fmt.Errorf("cannot access containerd socket %q: %w", address, err)
+			}
+			return nil, nil, nil, err
 		}
-		return nil, nil, nil, err
 	}
 	client, err := containerd.New(address, opts...)
 	if err != nil {

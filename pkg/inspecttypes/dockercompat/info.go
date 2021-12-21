@@ -90,8 +90,14 @@ type ComponentVersion struct {
 	Details map[string]string `json:",omitempty"`
 }
 
+type Platform struct {
+	OS           string
+	Architecture string
+}
+
 // ServerVersion is from https://github.com/moby/moby/blob/v20.10.8/api/types/types.go#L119-L137
 type ServerVersion struct {
 	Components []ComponentVersion
+	Platforms  []Platform
 	// Deprecated fields are not added here
 }

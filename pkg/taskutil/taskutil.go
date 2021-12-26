@@ -19,6 +19,7 @@ package taskutil
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/url"
 	"os"
@@ -55,8 +56,10 @@ func NewTask(ctx context.Context, client *containerd.Client, container container
 	}
 	t, err := container.NewTask(ctx, ioCreator)
 	if err != nil {
+		fmt.Printf("error in NewTask %+v\n", err)
 		return nil, err
 	}
+
 	stdinC.Closer = func() {
 		t.CloseIO(ctx, containerd.WithStdinCloser)
 	}

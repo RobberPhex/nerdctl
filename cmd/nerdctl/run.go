@@ -17,11 +17,15 @@
 package main
 
 import (
+	restclient "github.com/containerd/containerd/services/streaming/remotecommand/rest"
+	"net/http"
+
 	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/containerd/containerd/services/streaming/remotecommand"
 	"net/url"
 	"os"
 	"path"
@@ -284,7 +288,7 @@ func runAction(cmd *cobra.Command, args []string) error {
 
 	dataStore, err := getDataStore(cmd)
 	if err != nil {
-		return err
+		fmt.Printf("getDataStore failed! %+v\n", err)
 	}
 
 	stateDir, err := getContainerStateDirPath(cmd, dataStore, id)
@@ -370,7 +374,7 @@ func runAction(cmd *cobra.Command, args []string) error {
 
 	mountOpts, anonVolumes, err := generateMountOpts(cmd, ctx, client, ensuredImage)
 	if err != nil {
-		return err
+		fmt.Printf("generateMountOpts failed! %+v\n", err)
 	} else {
 		opts = append(opts, mountOpts...)
 	}
@@ -516,6 +520,31 @@ func runAction(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	// region  处理输入输出流
+	address, err := cmd.Flags().GetString("address")
+	if err != nil {
+		return err
+	}
+	u, err := url.Parse(task.LogUrl(ctx))
+	if err != nil {
+		return err
+	}
+	wsExecutor, err := remotecommand.NewWebSocketExecutor(
+		&restclient.Config{Proxy: http.ProxyFromEnvironment},
+		u,
+		address,
+	)
+	if err != nil {
+		return err
+	}
+	go wsExecutor.Stream(remotecommand.StreamOptions{
+		Stdin:  con,
+		Stdout: con,
+		Stderr: con,
+		Tty:    flagT,
+		//TerminalSizeQueue: terminalSizeQueue,
+	})
+	// endregion
 	var statusC <-chan containerd.ExitStatus
 	if !flagD {
 		defer func() {
@@ -767,25 +796,25 @@ func generateLogURI(dataStore string) (*url.URL, error) {
 }
 
 func withNerdctlOCIHook(cmd *cobra.Command, id, stateDir string) (oci.SpecOpts, error) {
-	selfExe, f := globalFlags(cmd)
-	args := append([]string{selfExe}, append(f, "internal", "oci-hook")...)
+	//selfExe, f := globalFlags(cmd)
+	//args := append([]string{selfExe}, append(f, "internal", "oci-hook")...)
 	return func(_ context.Context, _ oci.Client, _ *containers.Container, s *specs.Spec) error {
-		if s.Hooks == nil {
-			s.Hooks = &specs.Hooks{}
-		}
-		crArgs := append(args, "createRuntime")
-		s.Hooks.CreateRuntime = append(s.Hooks.CreateRuntime, specs.Hook{
-			Path: selfExe,
-			Args: crArgs,
-			Env:  os.Environ(),
-		})
-		argsCopy := append([]string(nil), args...)
-		psArgs := append(argsCopy, "postStop")
-		s.Hooks.Poststop = append(s.Hooks.Poststop, specs.Hook{
-			Path: selfExe,
-			Args: psArgs,
-			Env:  os.Environ(),
-		})
+		//if s.Hooks == nil {
+		//	s.Hooks = &specs.Hooks{}
+		//}
+		//crArgs := append(args, "createRuntime")
+		//s.Hooks.CreateRuntime = append(s.Hooks.CreateRuntime, specs.Hook{
+		//	Path: selfExe,
+		//	Args: crArgs,
+		//	Env:  os.Environ(),
+		//})
+		//argsCopy := append([]string(nil), args...)
+		//psArgs := append(argsCopy, "postStop")
+		//s.Hooks.Poststop = append(s.Hooks.Poststop, specs.Hook{
+		//	Path: selfExe,
+		//	Args: psArgs,
+		//	Env:  os.Environ(),
+		//})
 		return nil
 	}, nil
 }
